@@ -8,54 +8,17 @@ def create_table():
     cursor.execute('''
             CREATE TABLE IF NOT EXISTS clients (
             id INTEGER primary key,
-            name VARCHAR(1000) NOT NULL,
-            place_of_birth VARCHAR(1000) NOT NULL,
-            date_of_birth DATE,
-            address VARCHAR(1000) NOT NULL,
-            passport VARCHAR(100) NOT NULL UNIQUE
+            hash_SNILS VARCHAR(1000) NOT NULL,
+            first_name VARCHAR(10) NOT NULL,
+            last_name VARCHAR(10) NOT NULL
             );
-            
-            CREATE TABLE IF NOT EXISTS tarifs (
-            id INTEGER primary key,
-            name VARCHAR(100) NOT NULL,
-            cost NUMERIC(10,2)
-            );
-            
-            CREATE TABLE IF NOT EXISTS products_type (
-            id INTEGER primary key,
-            name VARCHAR(100) NOT NULL,
-            begin_date DATE,
-            end_date DATE,
-            tarif_ref INTEGER NOT NULL REFERENCES tarifs(id)
-            );
-            
+                       
             CREATE TABLE IF NOT EXISTS products (
             id INTEGER primary key,
-            product_type_id INTEGER NOT NULL REFERENCES products_type(id),
-            name VARCHAR(100) NOT NULL,
             client_ref INTEGER NOT NULL REFERENCES clients(id),
+            name VARCHAR(100) NOT NULL,
             open_date DATE,
             close_date DATE
-            );
-            
-            CREATE TABLE IF NOT EXISTS accounts (
-            id INTEGER primary key,
-            name VARCHAR(100) NOT NULL,
-            saldo NUMERIC(10,2),
-            client_ref INTEGER NOT NULL REFERENCES clients(id),
-            open_date DATE,
-            close_date DATE,
-            product_ref INTEGER NOT NULL REFERENCES products(id),
-            acc_num VARCHAR(100) NOT NULL UNIQUE,
-            sum_dogovor NUMERIC(10,2)
-            );
-            
-            CREATE TABLE IF NOT EXISTS records (
-            id INTEGER primary key,
-            dt NUMERIC(1),
-            sum NUMERIC(10,2),
-            acc_ref INTEGER NOT NULL REFERENCES accounts(id),
-            oper_date DATE
             );
                 ''')
     conn.commit()
@@ -68,11 +31,7 @@ def drop():
     '''
     cursor.execute('''
             DROP TABLE clients CASCADE;
-            DROP TABLE records CASCADE;
-            DROP TABLE accounts CASCADE;
             DROP TABLE products CASCADE;
-            DROP TABLE products_type CASCADE;
-            DROP TABLE tarifs CASCADE;
         ''')
     conn.commit()
     print('Структура успешно удалена.')
@@ -184,4 +143,4 @@ def add_data():
 if __name__ == '__main__':
     #drop() # Нужно закомментировать или раскомментировать необходимую функцию.
     create_table()
-    add_data()
+    #add_data()
