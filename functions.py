@@ -5,12 +5,15 @@ import math
 
 
 def checking_the_control_number(number):
-    '''Функция на вход принимает СНИЛС. Возвращает True и контрольное число, если проверка контольного числа прошла успешно. Возращает False если проверка не пройдена'''
+    '''Функция на вход принимает СНИЛС. Eсли проверка контольного числа прошла успешно возвращает контрольное число. Eсли проверка не пройдена возращает строку, описывающую проблему'''
+
+    value = int(number[0])
+    print(type(value))
 
     last_three = int(number[8:11])
 
-    if number[0] == '0' and number[1] == '0' and number[2] == '1' and number[4] == '0' and number[5] == '0' and number[6] == '1' and last_three <= 998: # Проверям, что СНИЛС больше 001-001-998
-        return ['Невозможно сформировать контрольное число, т.к. страховой номер меньше 001-001-998!']
+    if int(number[0]) == 0 and int(number[1]) == 0 and int(number[2]) == 1 and int(number[4]) == '0' and int(number[5]) == 0 and int(number[6]) == 1 and last_three <= 998: # Проверям, что СНИЛС больше 001-001-998
+        return 'Невозможно сформировать контрольное число, т.к. страховой номер меньше 001-001-998!'
 
     else:
         сontrol_number_value = math.ceil((9*int(number[0])+8*int(number[1])+7*int(number[2])+  # Формирование контрольного числа
@@ -27,9 +30,9 @@ def checking_the_control_number(number):
         control_number = number[-2]+number[-1] # Берем контрольное число из number
 
         if сontrol_number_value == control_number: # Проводим сравнение сформированного контрольного числа и контрольного числа из СНИЛС
-            return True, control_number
+            return int(сontrol_number_value)
         else:
-            return [False]
+            return f'Проверка контрольного числа не пройдена {сontrol_number_value} != {control_number}'
 
 
 def insert_clients(control_number, first_name, last_name):
@@ -67,7 +70,26 @@ def add_product(contr_number, name_product, value):
     print(f'Продукт {name_product} успешно добавлен клиенту .')
 
 
+def update_product(contr_number, value):
+    '''
+    Функция обновления продукта в таблице products.
+    '''
 
+    date = datetime.datetime.now()
+    close_date = (str(date.year) + '-' + str(date.month) + '-' + str(date.day))
+
+    cursor.execute('''
+        SELECT id FROM clients
+        WHERE contr_numb = %s;
+    ''', (contr_number,))
+    id = cursor.fetchone()[0]
+
+    cursor.execute('''
+        UPDATE products SET value=%s, close_date=%s WHERE client_ref = %s;
+    ''', (value, close_date, id))
+    conn.commit()
+
+    print(f'Продукт успешно обновлен.')
 
 
 
