@@ -1,20 +1,78 @@
 from connect import cursor, conn
 from pprint import pprint
 import datetime
+import math
 
 
-# 4 задание
-def task_4():
+def checking_the_control_number(number):
+    '''Функция на вход принимает СНИЛС. Возвращает True и контрольное число, если проверка контольного числа прошла успешно. Возращает False если проверка не пройдена'''
+
+    last_three = int(number[8:11])
+
+    if number[0] == '0' and number[1] == '0' and number[2] == '1' and number[4] == '0' and number[5] == '0' and number[6] == '1' and last_three <= 998: # Проверям, что СНИЛС больше 001-001-998
+        return ['Невозможно сформировать контрольное число, т.к. страховой номер меньше 001-001-998!']
+
+    else:
+        сontrol_number_value = math.ceil((9*int(number[0])+8*int(number[1])+7*int(number[2])+  # Формирование контрольного числа
+                                    6*int(number[4])+5*int(number[5])+4*int(number[6])+
+                                    3*int(number[8])+2*int(number[9])+1*int(number[10]))/1.01)
+
+        сontrol_number_value = (str(сontrol_number_value)[-2] + str(сontrol_number_value)[-1]) # Берем срез (нужно чтобы отбросить первое число, если сформированное контрольное число трехзначное)
+
+        if сontrol_number_value == '01': # Обрабатываем частные случаи
+            сontrol_number_value = '00'
+        elif сontrol_number_value == '02':
+            сontrol_number_value = '01'
+
+        control_number = number[-2]+number[-1] # Берем контрольное число из number
+
+        if сontrol_number_value == control_number: # Проводим сравнение сформированного контрольного числа и контрольного числа из СНИЛС
+            return True, control_number
+        else:
+            return [False]
+
+
+def insert_clients(control_number, first_name, last_name):
+    '''Функция для внесения клиента в таблицу clients'''
     cursor.execute('''
-        select a.acc_num  from accounts a 
-        inner join products p on a.product_ref = p.id 
-        inner join products_type pt on p.product_type_id = pt.id 
-        where pt.name = 'ДЕПОЗИТ' and not pt.name = 'КРЕДИТ'
-         ''')
-    data = cursor.fetchall()[0]
+        insert into clients(contr_numb, first_name, last_name) 
+        values (%s, %s, %s);
+         ''', (control_number, first_name, last_name))
+
     conn.commit()
-    for element in data:
-        print(f'Номер счета {element}')
+    print(f'Пользователь {first_name} успешно добвален в БД')
+
+
+def add_product(contr_number, name_product, value):
+    '''
+    Функция добавления продукта клиенту в таблицу products.
+    '''
+
+    date = datetime.datetime.now()
+    open_date = (str(date.year) + '-' + str(date.month) + '-' + str(date.day))
+    close_date = None
+
+    cursor.execute('''
+        SELECT id FROM clients
+        WHERE contr_numb = %s;
+    ''', (contr_number,))
+    id = cursor.fetchone()[0]
+
+    cursor.execute('''
+        INSERT INTO products(client_ref, name_product, value, open_date, close_date)
+        VALUES(%s, %s, %s, %s, %s);
+    ''', (id,name_product, value, open_date, close_date))
+    conn.commit()
+
+    print(f'Продукт {name_product} успешно добавлен клиенту .')
+
+
+
+
+
+
+
+
 
 
 # 5 задание
@@ -274,12 +332,3 @@ def task_11():
     conn.commit()
 
 
-if __name__ == '__main__':
-    #task_4() # Нужно закомментировать или раскомментировать необходимую функцию.
-    #task_5()
-    #task_6()
-    #task_7()
-    #task_8()
-    #task_9()
-    #task_10()
-    task_11()
